@@ -10,7 +10,7 @@ import geojson
 
 # The main part of the app
 def main():
-    print("testsadasd")
+    print("Hello World!")
     pass
 
 # Run the app
