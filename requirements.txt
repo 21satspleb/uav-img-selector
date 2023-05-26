@@ -1,0 +1,5 @@
+Pillow
+streamlit
+folium
+shapely
+geojson
