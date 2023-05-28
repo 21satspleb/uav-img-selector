@@ -1,125 +1,126 @@
-# Import required libraries
-from PIL import Image
-from PIL import ExifTags
-from PIL.ExifTags import TAGS, GPSTAGS
-import os
-import shutil
-import folium
-from folium import IFrame
-import streamlit as st
-from streamlit_folium import folium_static
+import json
 from shapely.geometry import Point, Polygon
-import geojson
-import base64
 
-def st_dir_selector(st_placeholder, path='.', label='Please, select a folder...'):
-    """
-    A function to select a directory in a Streamlit app.
-  
-    Parameters
-    ----------
-    st_placeholder : Streamlit placeholder
-        Streamlit placeholder to be used for the directory selection.
-    path : str
-        Path to the directory to be used as the base for the selection.
-    label : str
-        Label to be used in the selection box.
-  
-    Returns
-    -------
-    str
-        Path to the selected directory.
-    """
-    base_path = '.' if path is None or path is '' else path
-    base_path = base_path if os.path.isdir(base_path) else os.path.dirname(base_path)
-    base_path = '.' if base_path is None or base_path is '' else base_path
+data = '''
+{
+  "last_clicked": {
+    "lat": 52.618898050125395,
+    "lng": 12.78712570680832
+  },
+  "last_object_clicked_tooltip": null,
+  "all_drawings": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.787516,
+              52.618979
+            ],
+            [
+              12.787905,
+              52.618755
+            ],
+            [
+              12.787646,
+              52.61853
+            ],
+            [
+              12.78691,
+              52.618586
+            ],
+            [
+              12.787128,
+              52.618895
+            ],
+            [
+              12.787516,
+              52.618979
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "last_active_drawing": {
+    "type": "Feature",
+    "properties": {},
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            12.787516,
+            52.618979
+          ],
+          [
+            12.787905,
+            52.618755
+          ],
+          [
+            12.787646,
+            52.61853
+          ],
+          [
+            12.78691,
+            52.618586
+          ],
+          [
+            12.787128,
+            52.618895
+          ],
+          [
+            12.787516,
+            52.618979
+          ]
+        ]
+      ]
+    }
+  },
+  "bounds": {
+    "_southWest": {
+      "lat": 52.61756273687321,
+      "lng": 12.785570025444033
+    },
+    "_northEast": {
+      "lat": 52.619842515534046,
+      "lng": 12.789325118064882
+    }
+  },
+  "zoom": 18,
+  "last_circle_radius": null,
+  "last_circle_polygon": null,
+  "center": {
+    "lat": 52.6187026410444,
+    "lng": 12.787447571754457
+  }
+}
+'''
 
-    directories = [f.name for f in os.scandir(base_path) if f.is_dir()]
-    if not directories:
-        return None
-    selected_directory = st_placeholder.selectbox(label, directories)
-    return os.path.join(base_path, selected_directory)
-def get_exif_gps(image_file_path):
-    exif_table = {}
-    image = Image.open(image_file_path)
-    info = image._getexif()
-    #print(info)
-    for tag, value in info.items():
-        decoded = TAGS.get(tag, tag)
-        exif_table[decoded] = value
-    gps_info = {}
-    for key in exif_table['GPSInfo'].keys():
-        decode = GPSTAGS.get(key,key)
-        gps_info[decode] = exif_table['GPSInfo'][key]
-    # Extract GPS coordinates
-    latitude = gps_info['GPSLatitude']
-    longitude = gps_info['GPSLongitude']
-    lat = latitude[0] + latitude[1]/60 + latitude[2]/3600
-    lon = longitude[0] + longitude[1]/60 + longitude[2]/3600
-    if gps_info['GPSLatitudeRef'] == 'S':
-      lat = -lat
-    if gps_info['GPSLongitudeRef'] == 'W':
-      lon = -lon
-    lat = lat.numerator / lat.denominator
-    lon = lon.numerator / lon.denominator
-    return lat, lon
-  
-# The main part of the app
-def main():
-    st.title('UAV Image Selector')
-    placeholder = st.empty()
-    folder_path = st_dir_selector(placeholder)
-    if folder_path is not None:
-      images = {} 
-      for filename in os.listdir(folder_path):    
-        if filename.endswith(".JPG"):
-            lat, lon = get_exif_gps(folder_path + "/" + filename)
-            # Add tp images dict
-            images[filename] = [lat, lon]
-            # print(f"Latitude: {lat}")
-            # print(f"Longitude: {lon}")
-      st.write(f'Your images {images}')
-    else:
-        st.write('No directories found')
-    
-    m = folium.Map()
-    for img_path, coords in images.items():
-      # Create a marker with the image as the icon
-      img_path = folder_path + "/" + img_path
-      print(img_path)
-      icon = folium.Icon(icon="glyphicon glyphicon-eye-open")
-      marker = folium.Marker(location=coords, icon=icon)
-      
-      # Create a popup with the HTML for the image
-      encoded = base64.b64encode(open(img_path, 'rb').read())
-      svg = """
-      <object data="data:image/jpg;base64,{}" width="{}" height="{} type="image/svg+xml">
-      </object>""".format
-      
-      width, height, fat_wh = 300, 300, 1.3 # you can change these attributes as per your image requirements
+data_dict = json.loads(data)
+# # You can now access the data like this:
+# print(data_dict['last_clicked']['lat']) # Output: 52.618898050125395
 
-      iframe = IFrame(svg(encoded.decode('UTF-8'), width, height) , width=width*fat_wh,  height=height*fat_wh)
-      
-      popup  = folium.Popup(iframe, parse_html=True, max_width=1500)
-      # Add the popup to the marker
-      marker.add_child(popup)
-      # Add the marker to the map
-      m.add_child(marker)
-    folium_static(m)
+images = {'DJI_20230405095432_0001_D.JPG': [53.84474347222222, 12.560018], 'DJI_0010.JPG': [52.61870111111111, 12.787445916666666]}
 
-  # path = "data/"
-  # # Create dict which stores the image paths and their coordinates
-  # images = {} 
-  # for filename in os.listdir(path):    
-  #   if filename.endswith(".JPG"):
-  #       lat, lon = get_exif_gps(path + filename)
-  #       # Add tp images dict
-  #       images[filename] = [lat, lon]
-  #       # print(f"Latitude: {lat}")
-  #       # print(f"Longitude: {lon}")
-  # print(images)
-          
+# Extarct lat, lon from images and store in list for get_centroid(coords)
+coords = []
+for image in images:
+    coords.append(images[image])
 
-# Run the app
-if __name__ == "__main__":
-    main()
+print(coords)
+
+# Define polygon from dictionary
+polygon_coords = data_dict['last_active_drawing']['geometry']['coordinates'][0]
+polygon = Polygon(polygon_coords)
+
+# Filter dictionary to get coordinates that intersect with polygon
+all_coords = []
+for coord in coords:
+    point = Point(coord[1], coord[0])
+    if polygon.intersects(point):
+        all_coords.append(coord)
+print(all_coords)

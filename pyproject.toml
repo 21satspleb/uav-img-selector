@@ -6,6 +6,9 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+folium = "^0.14.0"
+Pillow = "^9.5.0"
+streamlit = "^1.22.0"
 
 [tool.poetry.dev-dependencies]
 
