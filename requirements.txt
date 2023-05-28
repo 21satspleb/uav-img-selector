@@ -4,7 +4,5 @@ streamlit
 streamlit_folium 
 shapely
 geojson
-os
-shutil
-math 
+ 
 

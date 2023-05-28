@@ -10,6 +10,8 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from streamlit_folium import st_folium
 from shapely.geometry import Point, Polygon
+import cProfile
+import pstats
 
 
 
@@ -56,7 +58,8 @@ def st_dir_selector(st_placeholder, path='.', label='Please, select a folder...'
         return None
     selected_directory = st_placeholder.selectbox(label, directories)
     return os.path.join(base_path, selected_directory)
-  
+
+@st.cache_data
 def get_exif_gps(image_file_path):
     if image_file_path.lower().endswith('.jpg'):  
       exif_table = {}
@@ -92,9 +95,17 @@ def get_exif_gps(image_file_path):
       lat, lon = latitude, longitude
     return lat, lon
 
+@st.cache_data
+def get_marker_data(images):
+    marker_data = []
+    for img_path, coord in images.items():
+        # Create marker data
+        marker_data.append({"location": coord["coords"], "icon": "glyphicon glyphicon-eye-open"})
+    return marker_data
+
   
 # The main part of the app
-def main():
+def main():    
     st.title('UAV Image Selector')
     placeholder = st.empty()
     folder_path = st_dir_selector(placeholder)
@@ -112,20 +123,25 @@ def main():
       if coords:  # check if coords is not empty
         initLocation = get_centroid(coords)
         # Generate the Map     
-        m = folium.Map(location = initLocation)    
+        m = folium.Map(location=initLocation)
         for img_path, coord in images.items():
           # Create a marker with the image as the icon
           img_path = folder_path + "/" + img_path
           # Fit map bounds to markers
           group = folium.FeatureGroup()        
-          icon = folium.Icon(icon="glyphicon glyphicon-eye-open")
-          marker = folium.Marker(location=coord["coords"], icon=icon)
-          group.add_child(marker)
-          # Add the marker to the map
-          m.add_child(marker)      
-        # Adjust Zoomlevel of the app
+          # Create a CircleMarker
+          circle_marker = folium.CircleMarker(
+              location=coord["coords"],
+              radius=3,  # Adjust the size of the circles here
+              color="blue",
+              fill=True,
+              fill_color="blue",
+          )
+          group.add_child(circle_marker)
+          # Add the CircleMarker to the map
+          m.add_child(circle_marker)
+
         m.fit_bounds(group.get_bounds())
-        # Add interactive drawing tools to the map
         Draw(export=True).add_to(m)
         output = st_folium(m, height=700, width=700)
         # Convert Output to dict
@@ -152,6 +168,10 @@ def main():
     else:
         st.write('No JPG or TIF images found in the selected directory.')
 
+
+#cProfile.run('main()')
+
 # Run the app
 if __name__ == "__main__":
     main()
+    
