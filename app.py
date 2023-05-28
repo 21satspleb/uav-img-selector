@@ -8,6 +8,7 @@ import streamlit as st
 from streamlit_folium import folium_static, st_folium 
 import math
 import json
+import rasterio
 from shapely.geometry import Point, Polygon
 import shutil
 
