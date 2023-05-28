@@ -1,16 +1,17 @@
 # Import required libraries
-from PIL import Image
-from PIL.ExifTags import TAGS, GPSTAGS
 import os
+import shutil
+import math
+import re
+import streamlit as st
 import folium
 from folium.plugins import Draw
-import streamlit as st
-from streamlit_folium import folium_static, st_folium 
-import math
-import json
-import rasterio
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+from streamlit_folium import st_folium
 from shapely.geometry import Point, Polygon
-import shutil
+
+
 
 def get_centroid(coords):
     x, y, z = 0, 0, 0
@@ -55,30 +56,42 @@ def st_dir_selector(st_placeholder, path='.', label='Please, select a folder...'
         return None
     selected_directory = st_placeholder.selectbox(label, directories)
     return os.path.join(base_path, selected_directory)
+  
 def get_exif_gps(image_file_path):
-    exif_table = {}
-    image = Image.open(image_file_path)
-    info = image._getexif()
-    #print(info)
-    for tag, value in info.items():
-        decoded = TAGS.get(tag, tag)
-        exif_table[decoded] = value
-    gps_info = {}
-    for key in exif_table['GPSInfo'].keys():
-        decode = GPSTAGS.get(key,key)
-        gps_info[decode] = exif_table['GPSInfo'][key]
-    # Extract GPS coordinates
-    latitude = gps_info['GPSLatitude']
-    longitude = gps_info['GPSLongitude']
-    lat = latitude[0] + latitude[1]/60 + latitude[2]/3600
-    lon = longitude[0] + longitude[1]/60 + longitude[2]/3600
-    if gps_info['GPSLatitudeRef'] == 'S':
-      lat = -lat
-    if gps_info['GPSLongitudeRef'] == 'W':
-      lon = -lon
-    lat = lat.numerator / lat.denominator
-    lon = lon.numerator / lon.denominator
+    if image_file_path.lower().endswith('.jpg'):  
+      exif_table = {}
+      image = Image.open(image_file_path)
+      info = image._getexif()      
+      for tag, value in info.items():
+          decoded = TAGS.get(tag, tag)
+          exif_table[decoded] = value
+      gps_info = {}
+      for key in exif_table['GPSInfo'].keys():
+          decode = GPSTAGS.get(key,key)
+          gps_info[decode] = exif_table['GPSInfo'][key]
+      # Extract GPS coordinates
+      latitude = gps_info['GPSLatitude']
+      longitude = gps_info['GPSLongitude']
+      lat = latitude[0] + latitude[1]/60 + latitude[2]/3600
+      lon = longitude[0] + longitude[1]/60 + longitude[2]/3600
+      if gps_info['GPSLatitudeRef'] == 'S':
+        lat = -lat
+      if gps_info['GPSLongitudeRef'] == 'W':
+        lon = -lon
+      lat = lat.numerator / lat.denominator
+      lon = lon.numerator / lon.denominator
+    elif image_file_path.lower().endswith('.tif'):
+      image = Image.open(image_file_path)
+      metadata = image.tag_v2
+      # Extract GPS Latitude and GPS Longitude values with regex
+      latitude_pattern = r'drone-dji:GpsLatitude="([-+]?[0-9]*\.?[0-9]+)"'
+      longitude_pattern = r'drone-dji:GpsLongitude="([-+]?[0-9]*\.?[0-9]+)"'
+      metadata = dict(metadata)
+      latitude = float(re.search(latitude_pattern, metadata[700].decode("utf-8")).group(1))
+      longitude = float(re.search(longitude_pattern, metadata[700].decode("utf-8")).group(1))
+      lat, lon = latitude, longitude
     return lat, lon
+
   
 # The main part of the app
 def main():

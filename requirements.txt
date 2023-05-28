@@ -1,10 +1,10 @@
 Pillow
-streamlit
 folium
+streamlit
+streamlit_folium 
 shapely
 geojson
 os
-rasterio
 shutil
 math 
-json 
+

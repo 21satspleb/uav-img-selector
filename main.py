@@ -123,17 +123,26 @@
 #     point = Point(coord[1], coord[0])
 #     if polygon.intersects(point):
 #         all_coords.append(coord)
-# print(all_coords)
+# # print(all_coords)
 
-import rasterio
+# from PIL import Image
+# import re
 
-with rasterio.open("data/DJI_20230405095456_0012_MS_G.TIF") as img:
-            # Get the bounds
-            left, bottom, right, top = img.bounds
-            # Calculate the centroid
-            lat = (top + bottom) / 2
-            lon = (right + left) / 2
-print(left, bottom, right, top)
-print(lat,lon)
+# def get_geotagging(image_path):
+#     image = Image.open(image_path)
+#     metadata = image.tag_v2
+#     return metadata
 
+# tif_file = "data/DJI_20230405095456_0012_MS_G.TIF"
+# geotagging = dict(get_geotagging(tif_file))
+
+# # Extract GPS Latitude and GPS Longitude values with regex
+# latitude_pattern = r'drone-dji:GpsLatitude="([-+]?[0-9]*\.?[0-9]+)"'
+# longitude_pattern = r'drone-dji:GpsLongitude="([-+]?[0-9]*\.?[0-9]+)"'
+
+# latitude = float(re.search(latitude_pattern, geotagging[700].decode("utf-8")).group(1))
+# longitude = float(re.search(longitude_pattern, geotagging[700].decode("utf-8")).group(1))
+
+# print(latitude)
+# print(longitude)
 
