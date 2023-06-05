@@ -1,5 +1,5 @@
 import os
-from tqdm import tqdm 
+import streamlit as st
 from uav_img_toolbox.classes.ImageMetaData import ImageMetaData
 
 class UAVImages:
@@ -9,21 +9,27 @@ class UAVImages:
   def __init__(self, directory):
    self.directory = directory
    self.image_dict = {} 
-
-  def create_image_dict(self):
-      filenames = [filename for filename in os.listdir(self.directory) 
-                   if filename.lower().endswith(('.jpg', '.tif'))]
-      for filename in tqdm(filenames, desc="Processing images"):
-          image_path = os.path.join(self.directory, filename)
-          try:
-              image_meta = ImageMetaData(image_path)
-              self.image_dict[image_path] = {
-                  'CaptureUUID': image_meta.CaptureUUID,
-                  'lat_lon': image_meta.lat_lon,
-              }
-          except Exception as e:
-              print(f"Could not process file {image_path}: {e}")
-      return self.image_dict
+  
+  def create_image_dict(self, progress_bar=None):
+          filenames = [filename for filename in os.listdir(self.directory) 
+                       if filename.lower().endswith(('.jpg', '.tif'))]
+          num_files = len(filenames)
+          for i, filename in enumerate(filenames, start=1):
+              image_path = os.path.join(self.directory, filename)
+              try:
+                  image_meta = ImageMetaData(image_path)
+                  self.image_dict[image_path] = {
+                      'CaptureUUID': image_meta.CaptureUUID,
+                      'lat_lon': image_meta.lat_lon,
+                      'date': image_meta.get_metadata()["EXIF:ModifyDate"],
+                      'image_meta' : image_meta
+                  }
+              except Exception as e:
+                  print(f"Could not process file {image_path}: {e}")
+              # Update progress bar, if one was provided
+              if progress_bar is not None:
+                  progress_bar.progress(i / num_files)
+          return self.image_dict
     
   def __str__(self):
       output = ""
@@ -35,4 +41,3 @@ class UAVImages:
           output += "-"*50 + "\n"  # separator between images
       return output
 
-    
