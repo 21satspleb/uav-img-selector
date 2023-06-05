@@ -2,7 +2,7 @@
 This project is a tool for reading drone images to inspect their EXIF and other metadata tags. It also allows you to select a subset
 of your images by an interactive polygon selection and stores a copy of them in an output folder.
 It uses Python, the Streamlit framework for UI and the ExifTool by Phil Harvey.
-
+![App Screenshot](app_screenshot_2.jpg)
 ![App Screenshot](app_screenshot.jpg)
 
 ## Installation
