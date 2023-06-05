@@ -31,7 +31,7 @@ st.title("Welcome to the UAV Image Metadata Explorer!")
 dir_placeholder = st.empty()
 
 # Let the user select a directory
-directory = "tests/img_folder/"
+directory = "data/"
 
 # If the user has selected a directory, process the images in that directory
 if directory:

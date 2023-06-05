@@ -74,7 +74,7 @@ with col2:
           with col2_2:
               folium_static(map_, width=300, height=300)
       st.markdown("### Metadata")
-      st.write(image_meta['image_meta'].metadata)
+      st.write(image_meta)
   else:
       st.write(f"No metadata found for {image_path}")
 
