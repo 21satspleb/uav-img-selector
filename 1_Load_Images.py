@@ -5,7 +5,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded")
 
-import os
 from uav_img_toolbox.classes.UAVImages import UAVImages
 
 

@@ -1,6 +1,5 @@
 import os
 import glob
-import streamlit as st
 from exiftool import ExifToolHelper
 
 class UAVImages:
