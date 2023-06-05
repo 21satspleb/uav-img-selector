@@ -136,4 +136,4 @@ dmypy.json
 .replit
 replit.nix
 poetry.lock
-pyporject.toml
+pyproject.toml
